@@ -1,0 +1,2563 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Quiz de Natación - Examen Universidad</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                padding: 40px;
+            }
+
+            h1 {
+                color: #2d3748;
+                margin-bottom: 30px;
+                text-align: center;
+                font-size: 2rem;
+            }
+
+            .quiz-selector {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+
+            .quiz-btn {
+                padding: 15px 20px;
+                background: #4c51bf;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: all 0.3s;
+            }
+
+            .quiz-btn:hover {
+                background: #5a67d8;
+                transform: translateY(-2px);
+            }
+
+            .quiz-btn.active {
+                background: #48bb78;
+            }
+
+            .question-container {
+                display: none;
+                animation: fadeIn 0.5s;
+            }
+
+            .question-container.active {
+                display: block;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .progress-bar {
+                width: 100%;
+                height: 8px;
+                background: #e2e8f0;
+                border-radius: 4px;
+                margin-bottom: 30px;
+                overflow: hidden;
+            }
+
+            .progress {
+                height: 100%;
+                background: #48bb78;
+                transition: width 0.3s;
+            }
+
+            .question {
+                margin-bottom: 20px;
+                padding: 20px;
+                background: #f7fafc;
+                border-radius: 8px;
+            }
+
+            .question h3 {
+                color: #2d3748;
+                margin-bottom: 20px;
+                font-size: 1.1rem;
+                line-height: 1.5;
+            }
+
+            .options {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .option {
+                padding: 15px;
+                background: white;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .option:hover {
+                background: #edf2f7;
+                border-color: #cbd5e0;
+            }
+
+            .option.selected {
+                background: #bee3f8;
+                border-color: #4299e1;
+            }
+
+            .option.correct {
+                background: #c6f6d5;
+                border-color: #48bb78;
+            }
+
+            .option.incorrect {
+                background: #fed7d7;
+                border-color: #f56565;
+            }
+
+            .option.disabled {
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+
+            .feedback {
+                margin-top: 15px;
+                padding: 15px;
+                border-radius: 8px;
+                display: none;
+            }
+
+            .feedback.show {
+                display: block;
+                animation: slideIn 0.3s;
+            }
+
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            .feedback.correct {
+                background: #c6f6d5;
+                color: #22543d;
+            }
+
+            .feedback.incorrect {
+                background: #fed7d7;
+                color: #742a2a;
+            }
+
+            .nav-buttons {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 30px;
+                gap: 15px;
+            }
+
+            .nav-btn {
+                padding: 12px 30px;
+                background: #4c51bf;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: all 0.3s;
+            }
+
+            .nav-btn:hover {
+                background: #5a67d8;
+            }
+
+            .nav-btn:disabled {
+                background: #cbd5e0;
+                cursor: not-allowed;
+            }
+
+            .results {
+                display: none;
+                text-align: center;
+                padding: 40px;
+                background: #f7fafc;
+                border-radius: 12px;
+            }
+
+            .results.show {
+                display: block;
+            }
+
+            .score {
+                font-size: 3rem;
+                color: #4c51bf;
+                margin-bottom: 20px;
+                font-weight: bold;
+            }
+
+            .score-message {
+                font-size: 1.2rem;
+                color: #4a5568;
+                margin-bottom: 30px;
+            }
+
+            .restart-btn {
+                padding: 15px 40px;
+                background: #48bb78;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1.1rem;
+                transition: all 0.3s;
+            }
+
+            .restart-btn:hover {
+                background: #38a169;
+            }
+
+            .question-number {
+                color: #718096;
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+
+            @media (max-width: 640px) {
+                .container {
+                    padding: 20px;
+                }
+
+                h1 {
+                    font-size: 1.5rem;
+                }
+
+                .quiz-selector {
+                    grid-template-columns: repeat(
+                        auto-fill,
+                        minmax(100px, 1fr)
+                    );
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Quiz de Natación - Preparación Examen</h1>
+
+            <div class="quiz-selector" id="quizSelector">
+                <button class="quiz-btn" onclick="startQuiz(0)">Quiz 1</button>
+                <button class="quiz-btn" onclick="startQuiz(1)">Quiz 2</button>
+                <button class="quiz-btn" onclick="startQuiz(2)">Quiz 3</button>
+                <button class="quiz-btn" onclick="startQuiz(3)">Quiz 4</button>
+                <button class="quiz-btn" onclick="startQuiz(4)">Quiz 5</button>
+                <button class="quiz-btn" onclick="startQuiz(5)">Quiz 6</button>
+                <button class="quiz-btn" onclick="startQuiz(6)">Quiz 7</button>
+                <button class="quiz-btn" onclick="startQuiz(7)">Quiz 8</button>
+                <button class="quiz-btn" onclick="startQuiz(8)">Quiz 9</button>
+                <button class="quiz-btn" onclick="startQuiz(9)">Quiz 10</button>
+            </div>
+
+            <div class="progress-bar" style="display: none" id="progressBar">
+                <div class="progress" id="progress"></div>
+            </div>
+
+            <div class="question-container" id="questionContainer"></div>
+
+            <div class="nav-buttons" style="display: none" id="navButtons">
+                <button
+                    class="nav-btn"
+                    id="prevBtn"
+                    onclick="previousQuestion()"
+                >
+                    Anterior
+                </button>
+                <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">
+                    Siguiente
+                </button>
+            </div>
+
+            <div class="results" id="results">
+                <div class="score" id="score"></div>
+                <div class="score-message" id="scoreMessage"></div>
+                <button class="restart-btn" onclick="restart()">
+                    Volver a Empezar
+                </button>
+            </div>
+        </div>
+
+        <script>
+            const quizzes = [
+                // Quiz 1
+                [
+                    {
+                        question: "¿En qué año Nicholas Wyman documentó los primeros tipos de desplazamientos acuáticos sin estilos definidos?",
+                        options: ["1538", "1798", "1828", "1869"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cuál es la densidad promedio del cuerpo humano según el material?",
+                        options: ["0.933 g/m³", "1.033 g/m³", "0.833 g/m³", "0.973 g/m³"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿A qué profundidad debe bajar la cadera para generar la ola Hull Speed?",
+                        options: ["0,5 metros", "0,6 metros", "0,7 metros", "0,4 metros"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué porcentaje de propulsión aportan los brazos en el estilo mariposa?",
+                        options: ["75%", "80%", "65%", "50%"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué año se fundó la Amateur Swimming Association (ASA)?",
+                        options: ["1869", "1875", "1908", "1900"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cuál fue el último estilo reconocido oficialmente por la FINA?",
+                        options: ["Crol", "Espalda", "Mariposa", "Braza"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué distancia es la más efectiva para nadar detrás de otro nadador según el efecto drafting?",
+                        options: ["0,5 metros", "0,6 metros", "0,4 metros", "0,7 metros"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿En qué Juegos Olímpicos se nadó por primera vez la prueba de espalda?",
+                        options: ["Atenas 1896", "París 1900", "San Louis 1904", "Melbourne 1956"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál es la temperatura estándar del agua en condiciones normales para competición?",
+                        options: ["18°C", "22°C", "20°C", "24°C"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué año Matthew Web realizó la histórica travesía del Canal de la Mancha?",
+                        options: ["1875", "1869", "1880", "1865"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cuánto puede llegar a disminuir el perímetro corporal por la presión hidrostática?",
+                        options: ["1-3,5 cm", "2-4,5 cm", "0,5-2,5 cm", "1,5-4 cm"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿En qué año Guts Muths escribió su manual sobre el arte de la natación?",
+                        options: ["1798", "1808", "1788", "1818"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué porcentaje del peso corporal se pierde en el agua por microgravidez hidrostática?",
+                        options: ["85%", "90%", "95%", "80%"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué año se construyó la primera piscina cubierta en Londres?",
+                        options: ["1828", "1837", "1844", "1850"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cuál es la máxima distancia permitida bajo el agua tras salida y virajes en crol, espalda y mariposa?",
+                        options: ["10 metros", "12 metros", "15 metros", "20 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué porcentaje de propulsión aportan las piernas en el estilo braza?",
+                        options: ["20%", "35%", "40%", "50%"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿En qué año se organizó la primera competición oficial de natación?",
+                        options: ["1828", "1837", "1844", "1850"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál es la densidad del agua a 4°C?",
+                        options: ["1 gr/cm³", "0,9 gr/cm³", "1,1 gr/cm³", "0,95 gr/cm³"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cada sección de corchera en una piscina mide cuántos metros?",
+                        options: ["3 metros", "4 metros", "5 metros", "6 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué año se fundó la Federación Internacional de Natación (FINA)?",
+                        options: ["1896", "1900", "1908", "1912"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es la posición óptima de los brazos según el material para reducir la resistencia?",
+                        options: ["Torpedo", "Punta de flecha", "Paralelos", "Un brazo adelante"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué civilización comparaba no saber nadar con no saber leer?",
+                        options: ["Egipcia", "Romana", "Griega", "Fenicia"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué Juegos Olímpicos se separó el estilo libre de la braza?",
+                        options: ["París 1900", "San Louis 1904", "Atenas 1896", "Londres 1908"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuánto puede disminuir el perímetro abdominal por presión hidrostática?",
+                        options: ["2,5-6,5 cm", "1-3,5 cm", "3-7 cm", "2-5 cm"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Desde qué año se utiliza la natación según los restos históricos encontrados?",
+                        options: ["4500 a.C.", "3500 a.C.", "5000 a.C.", "4000 a.C."],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué distancia era la primera prueba de natación en los JJOO de Atenas 1896?",
+                        options: ["800m", "1000m", "1200m", "1500m"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué porcentaje de propulsión aportan los brazos en el estilo espalda?",
+                        options: ["65%", "75%", "80%", "70%"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué posición es la cuarta más óptima para reducir resistencia según el material?",
+                        options: ["Punta de flecha", "Paralelos", "Un brazo adelante", "Torpedo"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿En los Juegos Olímpicos de qué ciudad se reconoció oficialmente el estilo mariposa?",
+                        options: ["Melbourne", "Roma", "Tokyo", "Londres"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué factor NO aumenta la densidad del agua?",
+                        options: ["Aumento de temperatura", "Aumento de sal", "Aumento de presión", "Disminución de temperatura"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿Cuándo se inició el análisis biomecánico de la técnica de natación?",
+                        options: ["1960", "1970", "1980", "1965"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué porcentaje de propulsión aportan los brazos en crol?",
+                        options: ["70%", "75%", "80%", "85%"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Dónde se encontraron los primeros restos históricos de natación?",
+                        options: ["Cueva de los nadadores", "Valle del Nilo", "Templo de Karnak", "Pirámides de Giza"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué distancia tenía la prueba de espalda en los JJOO París 1900?",
+                        options: ["100m", "150m", "200m", "250m"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué aumenta cuando disminuye la temperatura del agua?",
+                        options: ["Densidad", "Viscosidad", "Flotabilidad", "Presión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo se llama el movimiento de rotación del cuerpo en natación que aumenta el tiempo de interacción con el agua?",
+                        options: ["Batido", "Rolido", "Giro", "Pivote"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué civilización construyó las primeras piscinas conocidas como termas?",
+                        options: ["Griega", "Egipcia", "Romana", "Fenicia"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Para hombres, hasta dónde puede extenderse el bañador según reglamento FINA?",
+                        options: ["Hasta la rodilla", "Hasta el tobillo", "Hasta medio muslo", "Hasta la pantorrilla"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué principio físico explica el empuje vertical hacia arriba en el agua?",
+                        options: ["Ley de Newton", "Principio de Bernoulli", "Principio de Arquímedes", "Ley de Pascal"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En la técnica de braza subacuática, qué se permite además de la brazada completa?",
+                        options: ["Patada de crol", "Patada delfín", "Doble brazada", "Patada lateral"],
+                        correct: 1
+                    }
+                ],
+                [
+                        {
+                            question: "¿Qué porcentaje de propulsión aportan las piernas en el estilo crol?",
+                            options: ["15%", "20%", "25%", "30%"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿En qué desierto se encuentra la 'Cueva de los nadadores'?",
+                            options: ["Gobi", "Atacama", "Sáhara", "Kalahari"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué estilo fue el tercero en aparecer históricamente?",
+                            options: ["Braza", "Espalda", "Crol", "Mariposa"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Cuál fue el primer estilo de natación que apareció?",
+                            options: ["Crol", "Braza", "Espalda", "Mariposa"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué posición del nadador detrás de otro genera el mínimo oleaje según el material?",
+                            options: ["Tocando los pies", "A 1 metro", "A 0,5 metros", "A 2 metros"],
+                            correct: 0
+                        },
+                        {
+                            question: "¿En qué año el crol fue adaptado de la braza en posición lateral?",
+                            options: ["1837", "1844", "1850", "1869"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué tipo de fuerza es el rozamiento del agua con la piel del nadador?",
+                            options: ["F. Forma", "F. Oleaje", "F. Fricción", "F. Presión"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Cuál es el orden de velocidad de los estilos de más rápido a más lento?",
+                            options: ["Crol-mariposa-espalda-braza", "Crol-espalda-mariposa-braza", "Mariposa-crol-espalda-braza", "Crol-mariposa-braza-espalda"],
+                            correct: 0
+                        },
+                        {
+                            question: "¿Qué organismo reglamenta la natación de competición desde 1869?",
+                            options: ["FINA", "IOC", "ASA", "NCAA"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué porcentaje de propulsión aportan las piernas en mariposa?",
+                            options: ["20%", "25%", "30%", "35%"],
+                            correct: 3
+                        },
+                        {
+                            question: "¿Qué ley física establece que un cuerpo en reposo permanecerá en reposo si la fuerza resultante es cero?",
+                            options: ["1ª Ley de Newton", "2ª Ley de Newton", "3ª Ley de Newton", "Ley de Hooke"],
+                            correct: 0
+                        },
+                        {
+                            question: "¿Cuál es la presión atmosférica en condiciones normales para natación?",
+                            options: ["0,5 Atm", "1 Atm", "1,5 Atm", "2 Atm"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué tendencia actual existe en la enseñanza de la técnica de natación?",
+                            options: ["Uniformar el modelo técnico", "Adaptar el modelo a las características personales", "Priorizar la fuerza sobre la técnica", "Enfocarse solo en la velocidad"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿En qué posición del ranking de deportes más practicados está la natación en España?",
+                            options: ["2º", "3º", "4º", "5º"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué género practica más la natación en España según el material?",
+                            options: ["Hombres", "Mujeres", "Por igual", "No se especifica"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué elemento de la piscina sirve para la salida de espalda?",
+                            options: ["Plataforma inclinada", "Agarradero", "Corchera", "Escalera"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué principio físico explica la resistencia del agua sobre un cuerpo en movimiento?",
+                            options: ["Arquímedes", "Pascal", "Bernoulli", "Torricelli"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Cómo se llama la capa de agua que debe mantenerse pegada al cuerpo para reducir la fricción?",
+                            options: ["Capa límite", "Capa laminar", "Capa turbulenta", "Capa adhesiva"],
+                            correct: 0
+                        },
+                        {
+                            question: "¿Qué tipo de nadadores son típicamente más bajos y potentes de tren inferior?",
+                            options: ["Velocistas", "Fondistas", "Bracistas", "Espaldistas"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿En qué carril van los nadadores con mejores tiempos en competición?",
+                            options: ["Laterales", "Centrales", "Primeros", "Últimos"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué elemento reduce el oleaje entre carriles en la piscina?",
+                            options: ["Plataformas", "Escaleras", "Corcheras", "Cuerdas"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué efecto tiene una densidad alta del agua en la natación?",
+                            options: ["Favorece flotación y desplazamiento", "Perjudica flotación y desplazamiento", "Favorece flotación, perjudica desplazamiento", "Perjudica flotación, favorece desplazamiento"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué tipo de jueces existen en competiciones además de los de salida y entrada?",
+                            options: ["De estilo y viraje", "De tiempo y distancia", "De técnica y velocidad", "De forma y fondo"],
+                            correct: 0
+                        },
+                        {
+                            question: "¿Cada cuántos años se celebran los Campeonatos del Mundo de natación?",
+                            options: ["Anualmente", "Cada 2 años", "Cada 3 años", "Cada 4 años"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué característica debe tener la plataforma de salida según el reglamento?",
+                            options: ["Ser metálica", "Ser antideslizante", "Ser plana", "Ser alta"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿En qué tipo de agua se nada mejor según el material?",
+                            options: ["Agua salada", "Agua dulce", "Agua clorada", "Agua termal"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué ocurre con la viscosidad cuando disminuye la temperatura?",
+                            options: ["Aumenta", "Disminuye", "Se mantiene", "Se duplica"],
+                            correct: 0
+                        },
+                        {
+                            question: "¿Qué elemento de la instalación acuática se conoce como 'andén'?",
+                            options: ["La escalera", "La plataforma", "La playa exterior", "La corchera"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué ocurre si un nadador no rompe la superficie a los 15m en crol, espalda o mariposa?",
+                            options: ["Penalización de tiempo", "Descalificación", "Advertencia", "Nueva salida"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Con qué parte del cuerpo se debe tocar la pared en los virajes según el reglamento general?",
+                            options: ["Solo manos", "Solo pies", "Cualquier parte", "Manos o pies"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué longitud tienen las piscinas cortas?",
+                            options: ["20 metros", "25 metros", "30 metros", "33 metros"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué longitud tienen las piscinas largas?",
+                            options: ["40 metros", "45 metros", "50 metros", "60 metros"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Para mujeres, hasta dónde NO puede extenderse el bañador según FINA?",
+                            options: ["Por encima del ombligo", "Por encima de los hombros", "Por encima del pecho", "Por encima de la cintura"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué tipo de material deben ser los bañadores según FINA?",
+                            options: ["Sintético", "Natural", "Textil aprobado", "Cualquier material"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué está prohibido en las instalaciones de piscina según las normas?",
+                            options: ["Correr", "Gritar", "Animales", "Comer"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué tipo de personas tienen prohibida la entrada a las piscinas según el reglamento?",
+                            options: ["Menores sin acompañante", "Con enfermedades infectocontagiosas", "Sin gorro de baño", "Sin experiencia nadando"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Está permitido fumar en una instalación de piscina al aire libre?",
+                            options: ["Sí, siempre", "No, nunca", "Solo en zonas designadas", "Solo fuera del agua"],
+                            correct: 1
+                        },
+                        {
+                            question: "¿Qué se debe usar para cambiarse de ropa en la piscina?",
+                            options: ["Cualquier lugar seco", "El borde de la piscina", "Zonas específicas designadas", "Los baños"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Quién nadó por primera vez el crol según el material histórico?",
+                            options: ["Ingleses", "Franceses", "Indios americanos", "Australianos"],
+                            correct: 2
+                        },
+                        {
+                            question: "¿Qué efecto tiene el trabajo de musculatura espiratoria en el agua?",
+                            options: ["Disminuye", "Aumenta", "Se mantiene igual", "Se anula"],
+                            correct: 1
+                        }
+                    ],
+                // Quiz 3 - 40 preguntas
+                [
+                    {
+                        question: "¿Qué reduce la presión hidrostática en las superficies articulares?",
+                        options: ["El impacto y fricción", "La temperatura", "La velocidad", "La profundidad"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué aumenta el efecto compresor del agua según el material?",
+                        options: ["La flotabilidad", "La movilidad", "La resistencia", "La velocidad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué ocurre con el volumen sistólico en el agua?",
+                        options: ["Disminuye", "Aumenta", "Se mantiene", "Se anula"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué ocurre con la frecuencia cardíaca en el agua?",
+                        options: ["Aumenta", "Disminuye", "Se mantiene", "Se duplica"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué efecto produce la reducción del consumo de oxígeno en el agua?",
+                        options: ["Tensión", "Estrés", "Relajación", "Fatiga"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué recomendaba Guts Muths para la enseñanza de natación?",
+                        options: ["Solo práctica en agua", "Ejercicios en seco", "Teoría exclusiva", "Observación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué se centraba el manual de Guts Muths principalmente?",
+                        options: ["Crol y espalda", "Braza y braza invertida", "Mariposa y crol", "Todos los estilos"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué característica tienen las plataformas de salida además de ser antideslizantes?",
+                        options: ["Superficie plana", "Pequeña pendiente", "Gran inclinación", "Superficie curva"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Para qué sirve la cuerda de salida nula?",
+                        options: ["Entrenamiento", "Competición", "Recreación", "Enseñanza"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué característica deben tener las plataformas de salida?",
+                        options: ["Estar pintadas", "Estar enumeradas", "Estar iluminadas", "Estar cubiertas"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto de la natación se define como más importante que la cantidad?",
+                        options: ["Velocidad", "Fuerza", "Técnica", "Resistencia"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿La natación es un deporte principalmente de qué tipo?",
+                        options: ["Fuerza", "Resistencia", "Técnico", "Velocidad"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué se busca con mantener los flujos laminares en natación?",
+                        options: ["Aumentar velocidad", "Reducir turbulencias", "Mejorar flotación", "Aumentar propulsión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué posición de manos es óptima para la propulsión según el material?",
+                        options: ["Dedos separados", "Dedos juntos", "Mano ahuecada", "Puño cerrado"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué es clave para un mayor tiempo de interacción con el agua?",
+                        options: ["Patada fuerte", "Rolido", "Velocidad", "Flotación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué tipo de aceleración es importante mantener en la propulsión?",
+                        options: ["Variable", "Decreciente", "Constante", "Creciente"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué se debe evitar en la propulsión según el material?",
+                        options: ["Rolido", "Brazadas largas", "Ir a trompicones", "Rotación"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué sensación es importante tener durante la propulsión?",
+                        options: ["Velocidad", "Apoyo", "Ligereza", "Fuerza"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué tipo de brazadas son importantes para mayor interacción con el agua?",
+                        options: ["Cortas", "Rápidas", "Largas", "Superficiales"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué ocurre cuando flexionamos las piernas durante el nado?",
+                        options: ["Aumenta la velocidad", "Disminuye la velocidad significativamente", "Se mantiene la velocidad", "Mejora la flotación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Por qué disminuye la velocidad al flexionar las piernas?",
+                        options: ["Perdemos flotación", "Formamos una barrera con el agua", "Aumenta el peso", "Disminuye la propulsión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo debemos mantener el cuerpo para reducir resistencia?",
+                        options: ["Curvado", "Relajado", "Lo más alineado posible", "Flexionado"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es la segunda posición más óptima de brazos para reducir resistencia?",
+                        options: ["Punta de flecha", "Ambos en paralelo", "Un brazo adelante", "Torpedo"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál es la tercera posición más óptima de brazos según el material?",
+                        options: ["Torpedo", "Paralelos", "Un brazo al cuerpo y otro delante", "Punta de flecha"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En la posición torpedo, dónde están los brazos?",
+                        options: ["Extendidos adelante", "Pegados al cuerpo", "Uno adelante otro atrás", "En cruz"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué utilizaban los romanos en las termas principalmente?",
+                        options: ["Natación competitiva", "Rehabilitación", "Entrenamiento militar", "Recreación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Los romanos practicaban natación como tal en las termas?",
+                        options: ["Sí, competitivamente", "No, otros tipos de actividades", "Solo recreativamente", "Solo para ejercicio"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Por qué el ser humano siempre ha querido dominar el agua?",
+                        options: ["Por deporte", "Por supervivencia", "Por diversión", "Por salud"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿El ser humano está naturalmente hecho para nadar según el material?",
+                        options: ["Sí, completamente", "No", "Parcialmente", "Solo algunos"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuándo el ser humano va más rápido en el agua?",
+                        options: ["En superficie", "Haciendo crol", "Durante el buceo", "Con aletas"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Gracias a qué ha evolucionado principalmente la natación?",
+                        options: ["Tecnología", "Ciencia", "Innovaciones de los nadadores", "Entrenadores"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué época histórica se produce la revolución industrial que impulsa la natación?",
+                        options: ["Siglo XVIII", "Siglo XIX", "Siglo XX", "Siglo XVII"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué país se produce principalmente esta revolución que impulsa la natación moderna?",
+                        options: ["Francia", "Estados Unidos", "Inglaterra", "Alemania"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué distancia tenía la primera prueba olímpica de natación?",
+                        options: ["1000m", "1200m", "1500m", "800m"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Dónde se realizó la primera prueba olímpica de natación?",
+                        options: ["Piscina", "Río", "Mar abierto", "Lago"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cómo se nadaba la espalda en los JJOO de París 1900?",
+                        options: ["Como actualmente", "Como braza invertida", "Como crol invertido", "Como mariposa invertida"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué establece la 3ª Ley de Newton aplicada a la natación?",
+                        options: ["Fuerza igual y sentido contrario", "Aceleración proporcional", "Inercia del movimiento", "Conservación de energía"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué factores determinan la flotación además de la densidad del agua?",
+                        options: ["Solo respiración", "Solo postura", "Respiración, postura y equilibrio", "Solo equilibrio"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué posición se consigue equilibrio entre fuerzas de flotación y peso?",
+                        options: ["Horizontal", "Vertical", "Diagonal", "Lateral"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué posición hay desequilibrio que no favorece la flotación?",
+                        options: ["Vertical", "Tumbados", "Sentados", "De pie"],
+                        correct: 1
+                    }
+                ],// Quiz 4 - 40 preguntas
+                [
+                            {
+                                question: "¿Qué fuerza de resistencia depende directamente de la viscosidad del agua?",
+                                options: ["F. Forma", "F. Oleaje", "F. Fricción", "F. Propulsión"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Qué se genera cuando el agua se despega del cuerpo del nadador?",
+                                options: ["Propulsión", "Turbulencias", "Flotación", "Aceleración"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Por qué es importante mantener una patada en natación según la hidrodinámica?",
+                                options: ["Para flotar mejor", "Para compensar la asimetría del cuerpo", "Para ir más rápido", "Para respirar mejor"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué parte del cuerpo humano es más hidrodinámica?",
+                                options: ["Cabeza y hombros", "Torso", "De cadera hacia abajo", "Brazos"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Qué tipo de flujos debemos evitar en natación?",
+                                options: ["Laminares", "Constantes", "Turbulentos", "Paralelos"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Qué propulsión es más importante en natación según el material?",
+                                options: ["La patada", "La brazada", "Ambas igual", "Depende del estilo"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué porcentaje aportan brazos y piernas respectivamente en crol?",
+                                options: ["70%-30%", "80%-20%", "75%-25%", "85%-15%"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué porcentaje aportan brazos y piernas respectivamente en braza?",
+                                options: ["60%-40%", "70%-30%", "50%-50%", "40%-60%"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Cómo son típicamente los nadadores bracistas según el material?",
+                                options: ["Altos y delgados", "Más bajos y potentes de tren inferior", "Altos y musculosos", "Delgados y flexibles"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué elemento es importante para una buena propulsión además de la técnica?",
+                                options: ["Velocidad máxima", "Tiempo de interacción con el agua", "Fuerza máxima", "Frecuencia de brazada"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué modalidad de natación combina diferentes estilos?",
+                                options: ["Relevos", "Medley", "Mixto", "Combinado"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Cuáles son las distancias de velocidad en natación?",
+                                options: ["50 y 100", "50, 100 y 200", "Solo 50", "100 y 200"],
+                                correct: 0
+                            },
+                            {
+                                question: "¿Cuál es la distancia más larga en pruebas olímpicas de piscina?",
+                                options: ["800m", "1000m", "1500m", "3000m"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Con qué frecuencia se celebran los Juegos Olímpicos?",
+                                options: ["Cada 2 años", "Cada 3 años", "Cada 4 años", "Cada 5 años"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Con qué frecuencia se celebran los campeonatos nacionales de natación?",
+                                options: ["Anualmente", "Cada 2 años", "Cada 6 meses", "Cada 4 años"],
+                                correct: 0
+                            },
+                            {
+                                question: "¿En una carrera de 50m, cómo es la técnica comparada con distancias largas?",
+                                options: ["Más suave", "Más fuerte", "Igual", "Más lenta"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Cómo es el movimiento de agua en una carrera de 50m?",
+                                options: ["Mínimo", "Moderado", "Mucho más movimiento", "Sin movimiento"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Cómo se usan las piernas en el 1500m comparado con el 50m?",
+                                options: ["Se usan más", "Casi no se usan", "Igual uso", "Solo al final"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Por qué se respira más en el 1500m que en el 50m?",
+                                options: ["Por técnica", "Por la duración (15min vs segundos)", "Por reglamento", "Por estrategia"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Cuánto puede durar aproximadamente una carrera de 1500m?",
+                                options: ["5 minutos", "10 minutos", "15 minutos", "20 minutos"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Qué polaridad tiene el agua que le da poder solvente?",
+                                options: ["Neutra", "Negativa", "Positiva", "Gran polaridad"],
+                                correct: 3
+                            },
+                            {
+                                question: "¿Por qué el agua se pega a nuestro cuerpo?",
+                                options: ["Por tensión superficial", "Por carga eléctrica", "Por temperatura", "Por densidad"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué rompemos al meternos en el agua?",
+                                options: ["Tensión superficial", "Enlaces de hidrógeno", "Moléculas de agua", "Presión atmosférica"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué genera la presión que hace que cueste movernos en el agua?",
+                                options: ["La temperatura", "El agua pegada al cuerpo", "La profundidad", "La velocidad"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué NO es lo mismo según el material del tema?",
+                                options: ["Flotación y peso", "Densidad y viscosidad", "Propulsión y resistencia", "Fricción y forma"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Cuál es la fórmula de la densidad?",
+                                options: ["Masa × volumen", "Masa / volumen", "Volumen / masa", "Masa + volumen"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿En qué tipo de agua se flota más pero se nada peor?",
+                                options: ["Dulce", "Salada", "Clorada", "Destilada"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué es la viscosidad?",
+                                options: ["La densidad del agua", "Fuerza que se opone a que dos capas de fluido se separen", "La resistencia al movimiento", "La flotabilidad"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué efecto tiene una viscosidad alta?",
+                                options: ["Favorece flotación y desplazamiento", "Perjudica flotación y desplazamiento", "Favorece flotación, perjudica desplazamiento", "Perjudica flotación, favorece desplazamiento"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Con qué tiene que ver la densidad según el material?",
+                                options: ["Viscosidad", "Solubilidad", "Temperatura", "Presión"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué son los puentes de hidrógeno en relación a la viscosidad?",
+                                options: ["Moléculas de agua", "Fuerza entre capas de agua", "Enlaces químicos", "Tensión superficial"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿A mayor densidad, qué ocurre con el movimiento?",
+                                options: ["Mayor facilidad", "Mayor dificultad", "Sin cambios", "Más velocidad"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Por qué es importante estandarizar las condiciones del agua?",
+                                options: ["Por seguridad", "Por la dificultad de movimiento variable", "Por reglamento", "Por comodidad"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué fuerzas actúan en estático en el agua?",
+                                options: ["Resistencia y propulsión", "Flotación y peso", "Fricción y forma", "Presión y tensión"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué fuerzas actúan en movimiento en el agua?",
+                                options: ["Flotación y peso", "Resistencia y propulsión", "Gravedad y empuje", "Presión y tensión"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿En qué sentido va la fuerza de resistencia respecto a nuestro movimiento?",
+                                options: ["Mismo sentido", "Sentido contrario", "Perpendicular", "Diagonal"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿En qué sentido va la fuerza de propulsión?",
+                                options: ["Contrario a la marcha", "En sentido de nuestra marcha", "Perpendicular", "Hacia abajo"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿Qué establece el Principio de Arquímedes?",
+                                options: ["Fuerza igual a la masa", "Empuje igual al peso del volumen desalojado", "Resistencia proporcional a velocidad", "Flotación igual al peso"],
+                                correct: 1
+                            },
+                            {
+                                question: "¿En qué dirección es el empuje según Arquímedes?",
+                                options: ["Horizontal", "Diagonal", "Vertical y hacia arriba", "Vertical y hacia abajo"],
+                                correct: 2
+                            },
+                            {
+                                question: "¿Qué dice la 1ª Ley de Newton sobre un cuerpo con fuerza resultante cero?",
+                                options: ["Acelera", "Permanece en reposo", "Se mueve uniformemente", "Flota"],
+                                correct: 1
+                            }
+                        ],
+                // Quiz 5 - 40 preguntas
+                [
+                    {
+                        question: "¿Qué principio explica la presión generada por partículas de agua sobre un cuerpo en movimiento?",
+                        options: ["Newton", "Arquímedes", "Bernoulli", "Pascal"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué ley de Newton se relaciona con la resistencia del agua?",
+                        options: ["1ª Ley", "2ª y 3ª Ley", "Solo 3ª Ley", "Ninguna"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué depende de mantener el agua pegada al cuerpo lo máximo posible?",
+                        options: ["Menor fuerza de fricción", "Mayor propulsión", "Mejor flotación", "Mayor velocidad"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cómo se llama la distancia a la que debe bajar la cadera para generar mínimo oleaje?",
+                        options: ["Wave Speed", "Hull Speed", "Draft Speed", "Flow Speed"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué calles van los nadadores con peores tiempos?",
+                        options: ["Centrales", "Laterales", "Primeras", "Intermedias"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Por qué disminuye significativamente la velocidad al flexionar las piernas?",
+                        options: ["Perdemos propulsión", "Aumenta el peso", "Formamos una barrera con el agua", "Disminuye la flotación"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es el aspecto más importante para una buena técnica de manos?",
+                        options: ["Dedos muy separados", "Dedos totalmente juntos", "Mano ahuecada", "Puño cerrado"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué permite hacer brazadas más largas y mayor tiempo de interacción?",
+                        options: ["Patada fuerte", "Rotar el cuerpo (rolido)", "Mayor velocidad", "Respiración frecuente"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué efecto produce la pérdida del 90% del peso corporal en el agua?",
+                        options: ["Hipergravedad", "Microgravidez hidrostática", "Flotación total", "Ingravidez"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué reduce el impacto en las superficies articulares en el agua?",
+                        options: ["La temperatura", "La pérdida de peso corporal", "La viscosidad", "La densidad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué efecto tiene la presión hidrostática en el cuerpo?",
+                        options: ["Efecto expansor", "Efecto compresor", "Efecto térmico", "Efecto relajante"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué reduce la tumefacción en el agua?",
+                        options: ["Temperatura", "Movimiento", "Presión hidrostática", "Flotación"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué ocurre con la capacidad vital en el agua?",
+                        options: ["Aumenta", "Se reduce", "Se mantiene", "Se duplica"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué trabajo muscular aumenta en el agua?",
+                        options: ["Musculatura inspiratoria", "Musculatura espiratoria", "Ambas", "Ninguna"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué favorece la reducción del consumo de oxígeno en el agua?",
+                        options: ["Tensión", "Relajación", "Activación", "Estrés"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué función tienen las corcheras además de delimitar el carril?",
+                        options: ["Decoración", "Reducir el oleaje", "Marcar distancia", "Flotación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuánto mide cada sección de corchera?",
+                        options: ["3 metros", "4 metros", "5 metros", "6 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuándo se utiliza principalmente la cuerda de salida nula?",
+                        options: ["Entrenamiento", "Competición", "Recreación", "Siempre"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué característica NO mencionada deben tener las plataformas de salida?",
+                        options: ["Ser blandas", "Antideslizantes", "Con pendiente", "Enumeradas"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Para qué estilo sirve específicamente el agarradero de la plataforma?",
+                        options: ["Crol", "Braza", "Espalda", "Mariposa"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Desde dónde se realiza la salida de espalda?",
+                        options: ["Plataforma", "Desde dentro del agua", "Desde el borde", "Desde fuera"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo se llama la parte exterior de la piscina?",
+                        options: ["Borde", "Playa o andén", "Perímetro", "Zona seca"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué tipos de jueces son los más comunes en competición?",
+                        options: ["Tiempo y distancia", "Salida y entrada", "Técnica y velocidad", "Estilo y forma"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Además de jueces de salida y entrada, qué otros jueces puede haber?",
+                        options: ["De tiempo", "De estilo y viraje", "De velocidad", "De técnica"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Quiénes controlan los tiempos en una competición?",
+                        options: ["Jueces", "Árbitros", "Cronometradores", "Observadores"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué ocurre si un nadador no rompe la superficie a los 15m en crol?",
+                        options: ["Advertencia", "Descalificación", "Penalización", "Nueva salida"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué está permitido en braza bajo el agua además de la brazada?",
+                        options: ["Doble patada", "Patada delfín", "Patada de crol", "Cualquier patada"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Después de la patada delfín y brazada subacuática en braza, qué debe hacer el nadador?",
+                        options: ["Continuar bajo agua", "Salir a superficie", "Hacer otro ciclo", "Virar"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Los bañadores deben ser de qué tipo según FINA?",
+                        options: ["Cualquier material", "Material sintético", "Materia textil aprobada", "Material impermeable"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Los bañadores masculinos no pueden extenderse por encima de qué parte?",
+                        options: ["Pecho", "Ombligo", "Cintura", "Cadera"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Los bañadores femeninos no pueden cubrir qué parte?",
+                        options: ["Brazos", "Cuello", "Espalda", "Abdomen"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Hasta dónde pueden llegar los bañadores por debajo tanto en hombres como mujeres?",
+                        options: ["Tobillo", "Pantorrilla", "Rodilla", "Muslo"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué está prohibido introducir en la piscina que pueda contaminar el agua?",
+                        options: ["Comida", "Bebidas", "Objetos susceptibles de daño o contaminación", "Toallas"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Dónde se debe cambiar de ropa en las instalaciones?",
+                        options: ["Cualquier sitio", "Baños", "Zonas específicas", "Vestuarios solo"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué está prohibido en toda la instalación de piscina incluso al aire libre?",
+                        options: ["Correr", "Fumar", "Gritar", "Comer"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué deben mantener los usuarios respecto a las instalaciones?",
+                        options: ["Orden", "Silencio", "Limpieza", "Distancia"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué país de Europa ocurrió principalmente la revolución industrial que impulsó la natación?",
+                        options: ["Francia", "Alemania", "Inglaterra", "Italia"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué siglo marca la revolución industrial en Inglaterra?",
+                        options: ["XVIII", "XIX", "XX", "XVII"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué organismo internacional regula los diferentes estilos de competición desde 1908?",
+                        options: ["ASA", "IOC", "FINA", "NCAA"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué significa FINA?",
+                        options: ["Federación Internacional de Natación", "Federación Internacional de Natación Amateur", "Federación Internacional de Natación Acuática", "Federación Internacional de Nadadores"],
+                        correct: 0
+                    }
+                ],
+                // Quiz 6 - 40 preguntas
+                [
+                    {
+                        question: "¿Por qué aspecto utilitario se ha utilizado históricamente la natación?",
+                        options: ["Deporte", "Supervivencia", "Recreación", "Salud"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto de la natación se relaciona con la salud física y mental?",
+                        options: ["Utilitario", "Competitivo", "Higiénico-sanitario", "Educativo"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Para qué NO es beneficiosa la natación en sí según el material sobre rehabilitación?",
+                        options: ["Es beneficiosa", "El medio acuático sí, pero no los estilos", "Solo algunos estilos", "Todos los estilos"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto de la natación se centra en la enseñanza de destrezas y técnica?",
+                        options: ["Recreativo", "Educativo", "Terapéutico", "Competitivo"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto incluye juego, diversión y placer?",
+                        options: ["Educativo", "Terapéutico", "Recreativo", "Competitivo"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué aspecto busca mejorar el rendimiento deportivo?",
+                        options: ["Recreativo", "Educativo", "Terapéutico", "Competitivo"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿Qué comparación hacían los griegos sobre la natación?",
+                        options: ["Con correr", "Con leer", "Con luchar", "Con pensar"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Para qué utilizaban la natación en Grecia además del aspecto cultural?",
+                        options: ["Ganar batallas", "Ceremonias", "Agricultura", "Comercio"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Cómo se llamaban las primeras piscinas romanas?",
+                        options: ["Baños", "Termas", "Acueductos", "Natatorios"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué tipos de desplazamientos documentó Nicholas Wyman en 1538?",
+                        options: ["Estilos modernos", "Perro, lateral, espalda, pecho, delfín", "Solo crol y braza", "Técnicas militares"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué se centraba principalmente el manual de Guts Muths de 1798?",
+                        options: ["Todos los estilos", "Crol y mariposa", "Braza y braza invertida", "Espalda y crol"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué recomendación importante hacía Guts Muths para la enseñanza?",
+                        options: ["Solo agua", "Ejercicios en seco", "Teoría primero", "Observación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué ciudad se construyó la primera piscina cubierta en 1828?",
+                        options: ["París", "Nueva York", "Londres", "Berlín"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Quiénes nadaron por primera vez el crol según el material?",
+                        options: ["Ingleses", "Indios americanos", "Australianos", "Franceses"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿De qué era adaptación el crol en 1844?",
+                        options: ["Mariposa", "Espalda", "Braza en posición lateral", "Estilo libre"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué siglas corresponden a la primera federación inglesa de natación?",
+                        options: ["ASA", "BSA", "ESA", "FSA"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué hizo la ASA en 1869?",
+                        options: ["Organizó competición", "Reglamentó la natación de competición", "Construyó piscina", "Creó nuevos estilos"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuándo aparece el primer reglamento de natación competitiva?",
+                        options: ["1837", "1844", "1869", "1908"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Quién cruzó el Canal de la Mancha en 1875?",
+                        options: ["Nicholas Wyman", "Guts Muths", "Matthew Web", "John Smith"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué impulsa principalmente la evolución de las técnicas de nado?",
+                        options: ["Tecnología", "JJOO Era Moderna", "Entrenadores", "Ciencia"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué ciudad fueron los primeros JJOO modernos con natación?",
+                        options: ["París", "Londres", "Atenas", "Roma"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué característica tenía la primera prueba olímpica de natación?",
+                        options: ["Piscina cubierta", "Mar abierto", "Río", "Lago"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué estilo se nadaba en la primera prueba olímpica?",
+                        options: ["Braza", "Crol", "Estilo libre", "Espalda"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué JJOO se nadó espalda como braza invertida?",
+                        options: ["Atenas 1896", "París 1900", "San Louis 1904", "Londres 1908"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué distancia tenía la prueba de espalda en París 1900?",
+                        options: ["100m", "150m", "200m", "400m"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué JJOO se separa definitivamente el estilo libre de la braza?",
+                        options: ["París 1900", "San Louis 1904", "Londres 1908", "Estocolmo 1912"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué año la FINA reconoce oficialmente el estilo mariposa?",
+                        options: ["1948", "1952", "1956", "1960"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿De qué estilo se separa la mariposa cuando es reconocida?",
+                        options: ["Crol", "Espalda", "Braza", "Estilo libre"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué ciudad fueron los JJOO donde se reconoce la mariposa?",
+                        options: ["Helsinki", "Melbourne", "Roma", "Tokyo"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Se nadaba mariposa en 1956 como actualmente?",
+                        options: ["Sí, exactamente", "No, aún no", "Casi igual", "Muy diferente"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál fue el orden histórico de aparición: primero, tercero y último estilo?",
+                        options: ["Crol, espalda, mariposa", "Braza, crol, mariposa", "Espalda, braza, crol", "Braza, mariposa, crol"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué característica principal define a la natación como deporte?",
+                        options: ["Fuerza", "Resistencia", "Técnico", "Velocidad"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué puede lograr alguien con gesto técnico perfecto vs alguien fuerte?",
+                        options: ["Ir más rápido", "Misma velocidad sin tanto esfuerzo", "Ganar siempre", "Flotar mejor"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué es más importante en natación según el material?",
+                        options: ["Cantidad", "Calidad (técnica)", "Velocidad", "Fuerza"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Desde cuándo se analiza la técnica gracias a la biomecánica?",
+                        options: ["1960", "1970", "1980", "1990"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál es la tendencia actual en la enseñanza de técnica?",
+                        options: ["Modelo único", "Adaptar modelo a características personales", "Sin modelo", "Modelo rígido"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué posición está la natación entre los deportes más practicados en España?",
+                        options: ["2º", "3º", "4º", "5º"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Quién practica más natación en España?",
+                        options: ["Hombres", "Mujeres", "Igual", "Niños"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuáles son las cuatro disciplinas/estilos principales?",
+                        options: ["Crol, espalda, mariposa, braza", "Libre, espalda, pecho, delfín", "Crawl, dorso, mariposa, pecho", "Velocidad, fondo, medio fondo, relevos"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué modalidad combina los cuatro estilos?",
+                        options: ["Relevos", "Combinado (medley)", "Mixto", "Individual"],
+                        correct: 1
+                    }
+                ],// Quiz 7 - 40 preguntas
+                [
+                    {
+                        question: "¿Cuáles son las distancias oficiales en competición según el material?",
+                        options: ["25, 50, 100, 200, 400", "50, 100, 200, 400, 1500", "50, 100, 200, 500, 1500", "100, 200, 400, 800, 1500"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué modalidades de competición existen?",
+                        options: ["Solo individual", "Individual y equipos", "Individual, equipos y combinado", "Individual y mixto"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cada cuántos años se celebran los Campeonatos del Mundo?",
+                        options: ["Anualmente", "Cada 2 años", "Cada 3 años", "Cada 4 años"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Con qué frecuencia se celebran los campeonatos nacionales?",
+                        options: ["Mensualmente", "Semestralmente", "Anualmente", "Cada 2 años"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué diferencia hay en la técnica entre 50m y distancias largas?",
+                        options: ["Ninguna", "En 50m es más fuerte y rápida", "En 50m es más suave", "Solo cambia la respiración"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo es el movimiento de agua en pruebas de velocidad (50m)?",
+                        options: ["Mínimo", "Moderado", "Mucho más movimiento", "Sin turbulencias"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cómo se usan las piernas en 1500m comparado con pruebas cortas?",
+                        options: ["Más intensamente", "Casi no se usan", "Igual intensidad", "Solo al sprint final"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Por qué hay más respiración en 1500m que en 50m?",
+                        options: ["Por técnica diferente", "Por duración (15 min vs segundos)", "Por reglamento", "Por estrategia"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuánto dura aproximadamente una prueba de 1500m?",
+                        options: ["5-8 minutos", "10-12 minutos", "Hasta 15 minutos", "20 minutos"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es el estilo más rápido de todos?",
+                        options: ["Mariposa", "Espalda", "Crol", "Braza"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es el orden correcto de velocidad de más rápido a más lento?",
+                        options: ["Crol-mariposa-espalda-braza", "Crol-espalda-mariposa-braza", "Mariposa-crol-espalda-braza", "Crol-mariposa-braza-espalda"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué característica del agua le da gran poder solvente?",
+                        options: ["Densidad", "Viscosidad", "Polaridad", "Temperatura"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es la densidad del agua a 4°C?",
+                        options: ["0,5 gr/cm³", "1 gr/cm³", "1,5 gr/cm³", "2 gr/cm³"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué favorece una densidad alta del agua?",
+                        options: ["Solo flotación", "Solo desplazamiento", "Flotación pero perjudica desplazamiento", "Desplazamiento pero perjudica flotación"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué tipo de agua se nada mejor aunque se flote menos?",
+                        options: ["Salada", "Dulce", "Caliente", "Fría"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué NO aumenta la densidad del agua?",
+                        options: ["Aumentar temperatura", "Aumentar sal", "Aumentar presión", "Disminuir temperatura"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿Qué es la viscosidad?",
+                        options: ["Resistencia al flujo", "Fuerza entre capas de fluido", "Densidad del agua", "Tensión superficial"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué favorece una viscosidad alta?",
+                        options: ["Flotación y desplazamiento", "Solo flotación", "Flotación pero perjudica desplazamiento", "Nada"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué ocurre con la viscosidad si disminuye la temperatura?",
+                        options: ["Disminuye", "Aumenta", "No cambia", "Se duplica"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿A mayor densidad del agua qué ocurre con el movimiento?",
+                        options: ["Más fácil", "Más difícil", "Sin cambios", "Más rápido"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Por qué es importante estandarizar las condiciones del agua?",
+                        options: ["Por seguridad", "Por las variaciones en densidad y viscosidad", "Por reglamento", "Por temperatura"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuáles son las condiciones normales del agua para competición?",
+                        options: ["18°C / 1 Atm", "20°C / 1 Atm", "22°C / 1 Atm", "25°C / 1 Atm"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Con qué tiene que ver la densidad según el material?",
+                        options: ["Temperatura", "Solubilidad", "Viscosidad", "Presión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué son los puentes de hidrógeno en relación con la viscosidad?",
+                        options: ["Moléculas", "Las fuerzas entre capas de agua", "Enlaces químicos", "Tensión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué fuerzas actúan sobre un cuerpo en estático en el agua?",
+                        options: ["Propulsión y resistencia", "Flotación y peso", "Fricción y forma", "Presión y empuje"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué fuerzas actúan sobre un cuerpo en movimiento en el agua?",
+                        options: ["Flotación y peso", "Resistencia y propulsión", "Solo resistencia", "Solo propulsión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué dirección actúa la fuerza de resistencia?",
+                        options: ["A favor del movimiento", "En contra del movimiento", "Perpendicular", "Variable"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué dirección actúa la fuerza de propulsión?",
+                        options: ["Contra el movimiento", "En sentido de la marcha", "Hacia abajo", "Variable"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué principio explica el empuje vertical hacia arriba?",
+                        options: ["Newton", "Bernoulli", "Arquímedes", "Pascal"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué dice el Principio de Arquímedes sobre el empuje?",
+                        options: ["Igual al peso del cuerpo", "Igual al peso del volumen desalojado", "Proporcional a la velocidad", "Proporcional a la profundidad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué establece la 1ª Ley de Newton?",
+                        options: ["F=ma", "Acción-reacción", "Cuerpo en reposo permanece en reposo si F=0", "Conservación energía"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué establece la 3ª Ley de Newton?",
+                        options: ["Inercia", "F=ma", "Por cada fuerza hay otra igual y contraria", "Gravedad"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es la densidad promedio del cuerpo humano?",
+                        options: ["0,833 g/m³", "0,933 g/m³", "1,033 g/m³", "1,133 g/m³"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué factores determinan la flotación además de las densidades?",
+                        options: ["Solo respiración", "Respiración y postura", "Respiración, postura y equilibrio", "Solo equilibrio"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué posición se alinean las fuerzas de flotación y peso?",
+                        options: ["Horizontal", "Vertical", "Diagonal", "Lateral"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué posición produce desequilibrio desfavorable para la flotación?",
+                        options: ["Vertical", "Tumbados", "De pie", "Sentados"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué principio explica la resistencia del agua en movimiento?",
+                        options: ["Arquímedes", "Newton", "Bernoulli", "Pascal"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué generan las partículas de agua según Bernoulli?",
+                        options: ["Solo resistencia", "Resistencia y presión sobre el cuerpo", "Solo presión", "Flotación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué leyes de Newton se relacionan con la resistencia?",
+                        options: ["Solo 1ª", "Solo 2ª", "2ª y 3ª", "Todas"],
+                        correct: 2
+                    }
+                ],
+                // Quiz 8 - 40 preguntas
+                [
+                    {
+                        question: "¿De qué depende directamente la fuerza de fricción?",
+                        options: ["Densidad", "Viscosidad", "Temperatura", "Presión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué hace que el agua se pegue a la piel del nadador?",
+                        options: ["Presión", "Temperatura", "Fuerza de fricción", "Densidad"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué se genera cuando el agua se despega del cuerpo?",
+                        options: ["Propulsión", "Flotación", "Turbulencias", "Aceleración"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Por qué se pierde adherencia del agua al cuerpo?",
+                        options: ["Velocidad excesiva", "Temperatura", "Se generan turbulencias", "Presión"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué debemos mantener pegada al cuerpo lo máximo posible?",
+                        options: ["Agua fría", "Capa límite", "Burbujas", "Presión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué tipo de flujos debemos evitar?",
+                        options: ["Laminares", "Constantes", "Laminares o turbulentos", "Paralelos"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué parte del cuerpo humano genera más resistencia por su asimetría?",
+                        options: ["Piernas", "Parte superior", "Brazos", "Cabeza"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Desde dónde es más hidrodinámico el cuerpo humano?",
+                        options: ["Cabeza", "Hombros", "Cadera hacia abajo", "Torso"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Por qué es importante llevar una patada según la hidrodinámica?",
+                        options: ["Velocidad", "Compensar asimetría corporal", "Flotación", "Propulsión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué posición debe mantener la parte superior para ser hidrodinámica?",
+                        options: ["Relajada", "Lo más hidrodinámica posible", "Curvada", "Elevada"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo conseguimos mantener el agua pegada al cuerpo?",
+                        options: ["Velocidad alta", "Posición hidrodinámica", "Fuerza", "Flotación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿A qué profundidad debe bajar la cadera para generar la ola Hull Speed?",
+                        options: ["0,4 m", "0,5 m", "0,6 m", "0,7 m"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué generan los nadadores al bajar la cadera 0,6m?",
+                        options: ["Máximo oleaje", "Mínimo oleaje posible", "Sin oleaje", "Oleaje medio"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál es la distancia más efectiva para nadar detrás de otro nadador?",
+                        options: ["0,5 m casi tocando los pies", "1 metro", "1,5 metros", "2 metros"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué ocurre si te alejas más del nadador de delante?",
+                        options: ["Menos resistencia", "Más te afecta la resistencia que genera", "Sin cambios", "Mejor propulsión"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Dónde van los nadadores con mejores tiempos en las calles?",
+                        options: ["Laterales", "Primeras", "Calles centrales", "Últimas"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Dónde van los nadadores con peores tiempos?",
+                        options: ["Centrales", "Laterales", "Primeras", "Medias"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué ocurre con la velocidad cuando flexionamos las piernas?",
+                        options: ["Aumenta", "Se mantiene", "Disminuye significativamente", "Aumenta poco"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Por qué disminuye la velocidad al flexionar piernas?",
+                        options: ["Perdemos flotación", "Formamos barrera con el agua", "Menos propulsión", "Mayor peso"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo debemos ir para reducir resistencia?",
+                        options: ["Relajados", "Curvados", "Lo más alineados posibles", "Flexibles"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es la posición óptima de brazos?",
+                        options: ["Torpedo", "Paralelos", "Punta de flecha", "Un brazo delante"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuál es la segunda posición más óptima?",
+                        options: ["Torpedo", "Ambos en paralelo", "Punta de flecha", "Un brazo delante"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuál es la tercera posición más óptima?",
+                        options: ["Torpedo", "Paralelos", "Un brazo al cuerpo y otro delante", "Brazos abiertos"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué posición es la cuarta más óptima?",
+                        options: ["Punta de flecha", "Paralelos", "Un brazo delante", "Torpedo"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿En la posición torpedo dónde están ambos brazos?",
+                        options: ["Extendidos", "Pegados al cuerpo", "Uno delante", "En cruz"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué es más importante para la propulsión?",
+                        options: ["La patada", "La brazada", "Ambas igual", "La respiración"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué porcentajes aportan brazada y patada en crol?",
+                        options: ["70-30", "80-20", "75-25", "85-15"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué porcentajes en espalda?",
+                        options: ["70-30", "75-25", "80-20", "65-35"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué porcentajes en mariposa?",
+                        options: ["60-40", "65-35", "70-30", "75-25"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué porcentajes en braza?",
+                        options: ["60-40", "70-30", "50-50", "40-60"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cómo son los nadadores bracistas típicamente?",
+                        options: ["Altos y delgados", "Más bajos y potentes tren inferior", "Altos y fuertes", "Medianos"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué es importante para buena propulsión además de técnica?",
+                        options: ["Fuerza máxima", "Tiempo de interacción con agua", "Velocidad", "Frecuencia"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo debe estar la mano para propulsión óptima?",
+                        options: ["Dedos separados", "Dedos juntos", "Ahuecada", "Puño"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Por qué son importantes las brazadas largas?",
+                        options: ["Menos esfuerzo", "Mayor tiempo interacción con agua", "Mejor flotación", "Menos resistencia"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué permite mayor tiempo de interacción con el agua?",
+                        options: ["Patada fuerte", "Rotar cuerpo (rolido)", "Velocidad alta", "Brazada corta"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué es CLAVE para mayor interacción con agua?",
+                        options: ["Fuerza", "Velocidad", "Rolido", "Patada"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué tipo de aceleración es importante?",
+                        options: ["Variable", "Constante", "Creciente", "Decreciente"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué debemos evitar en la propulsión?",
+                        options: ["Rolido", "Ir a trompicones", "Brazadas largas", "Rotación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué sensación es importante durante propulsión?",
+                        options: ["Velocidad", "Fuerza", "Apoyo", "Ligereza"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué porcentaje del peso corporal se pierde en agua?",
+                        options: ["80%", "85%", "90%", "95%"],
+                        correct: 2
+                    }
+                ],// Quiz 9 - 40 preguntas
+                [
+                    {
+                        question: "¿Cómo se llama el efecto de pérdida de peso en el agua?",
+                        options: ["Hipergravedad", "Microgravidez hidrostática", "Ingravidez total", "Antigravedad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué reduce la pérdida de peso corporal en el agua?",
+                        options: ["Impacto y fricción articular", "Temperatura corporal", "Presión sanguínea", "Volumen muscular"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué efecto produce la presión hidrostática?",
+                        options: ["Expansor", "Compresor", "Térmico", "Dilatador"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuánto puede disminuir el perímetro corporal por presión?",
+                        options: ["0,5-2 cm", "1-3,5 cm", "2-4 cm", "3-5 cm"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuánto puede disminuir el perímetro abdominal?",
+                        options: ["1-3 cm", "2-4 cm", "2,5-6,5 cm", "3-7 cm"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué reduce la presión hidrostática en el cuerpo?",
+                        options: ["La temperatura", "La tumefacción", "La flotación", "La velocidad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aumenta la presión hidrostática?",
+                        options: ["La velocidad", "La movilidad", "La resistencia", "La temperatura"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué ocurre con la capacidad vital en el agua?",
+                        options: ["Aumenta", "Se mantiene", "Se reduce", "Se duplica"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué musculatura aumenta su trabajo en el agua?",
+                        options: ["Inspiratoria", "Espiratoria", "Ambas", "Ninguna"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué ocurre con el volumen sistólico en agua?",
+                        options: ["Disminuye", "Se mantiene", "Aumenta", "Se anula"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué ocurre con la frecuencia cardíaca en agua?",
+                        options: ["Aumenta", "Disminuye", "Se mantiene", "Varía"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué se reduce favoreciendo la relajación?",
+                        options: ["Consumo de oxígeno", "Presión arterial", "Temperatura", "Volumen pulmonar"],
+                        correct: 0
+                    },
+                    {
+                        question: "¿Qué función tienen las corcheras además de delimitar?",
+                        options: ["Flotación", "Reducir oleaje", "Marcar tiempo", "Seguridad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cada sección de corchera mide?",
+                        options: ["3 metros", "4 metros", "5 metros", "6 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuándo se usa normalmente la cuerda de salida nula?",
+                        options: ["Entrenamiento", "Competición", "Recreación", "Siempre"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué característica deben tener las plataformas?",
+                        options: ["Lisas", "Antideslizantes", "Blandas", "Altas"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué tienen las plataformas además de ser antideslizantes?",
+                        options: ["Superficie plana", "Pequeña pendiente", "Gran inclinación", "Curvatura"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué deben estar las plataformas de salida?",
+                        options: ["Pintadas", "Iluminadas", "Enumeradas", "Señalizadas"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Para qué sirve el agarradero de la plataforma?",
+                        options: ["Salida crol", "Salida espalda", "Salida braza", "Seguridad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Desde dónde se hace la salida de espalda?",
+                        options: ["Plataforma", "Borde", "Dentro del agua agarrado", "Fuera del agua"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cómo se llama la parte exterior de la piscina?",
+                        options: ["Borde", "Andén", "Playa o andén", "Perímetro"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué jueces son los más comunes?",
+                        options: ["Tiempo y forma", "Salida y entrada", "Estilo y técnica", "Velocidad y distancia"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué otros jueces puede haber además de salida y entrada?",
+                        options: ["Tiempo y velocidad", "Estilo y viraje", "Técnica y forma", "Distancia y profundidad"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Quiénes controlan los tiempos en competición?",
+                        options: ["Jueces", "Árbitros", "Cronometradores", "Asistentes"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuánto mide una piscina larga?",
+                        options: ["25 metros", "33 metros", "50 metros", "100 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Cuánto mide una piscina corta?",
+                        options: ["15 metros", "20 metros", "25 metros", "30 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Máxima distancia sumergido tras salida y virajes en C+E+M?",
+                        options: ["10 metros", "12 metros", "15 metros", "20 metros"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué pasa si no se rompe superficie a los 15m en C+E+M?",
+                        options: ["Advertencia", "Penalización tiempo", "Descalificación", "Nueva salida"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué se permite en braza bajo el agua?",
+                        options: ["Doble brazada", "Patada delfín + brazada completa", "Solo patada", "Solo brazada"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Después de la secuencia subacuática en braza qué debe hacer?",
+                        options: ["Otra brazada", "Salir a superficie", "Virar", "Patada"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Con qué se debe tocar la pared en virajes?",
+                        options: ["Manos", "Pies", "Cualquier parte del cuerpo", "Manos o pies"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Los bañadores masculinos no pueden ir por encima de?",
+                        options: ["Pecho", "Ombligo", "Cintura", "Cadera"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Los bañadores masculinos no pueden ir por debajo de?",
+                        options: ["Muslo", "Rodilla", "Pantorrilla", "Tobillo"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Los bañadores femeninos no pueden cubrir?",
+                        options: ["Brazos", "Hombros", "Cuello", "Espalda"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Los bañadores femeninos no pueden extenderse por encima de?",
+                        options: ["Cintura", "Pecho", "Hombros", "Cuello"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Los bañadores femeninos no pueden ir por debajo de?",
+                        options: ["Muslo", "Rodilla", "Pantorrilla", "Cadera"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿De qué material deben ser los bañadores?",
+                        options: ["Sintético", "Natural", "Materia textil aprobada FINA", "Cualquier material"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué personas tienen prohibida entrada a piscinas?",
+                        options: ["Menores solos", "Con enfermedades infectocontagiosas", "Sin experiencia", "Sin bañador"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué animales pueden entrar a la piscina?",
+                        options: ["Perros guía", "Mascotas pequeñas", "Ninguno", "Con permiso"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué objetos están prohibidos en piscina?",
+                        options: ["Flotadores", "Gafas", "Susceptibles de daño o contaminar", "Juguetes"],
+                        correct: 2
+                    }
+                ],    // Quiz 10 - 40 preguntas
+                [
+                    {
+                        question: "¿Qué deben mantener los usuarios en las instalaciones?",
+                        options: ["Orden", "Silencio", "Limpieza", "Distancia"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Dónde se debe cambiar de ropa en la piscina?",
+                        options: ["Baños", "Cualquier sitio", "Zonas específicas", "Vestuarios"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Está permitido fumar en instalación al aire libre?",
+                        options: ["Sí", "No", "Solo en zonas", "Con permiso"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Dónde se encontraron los primeros restos de natación de 4500 a.C.?",
+                        options: ["Valle del Nilo", "Cueva de los nadadores", "Pirámides", "Templo griego"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué desierto está la Cueva de los nadadores?",
+                        options: ["Gobi", "Atacama", "Kalahari", "Sáhara"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿Qué país se encuentra la Cueva de los nadadores?",
+                        options: ["Libia", "Egipto", "Túnez", "Argelia"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Por qué el ser humano siempre ha querido dominar el agua?",
+                        options: ["Deporte", "Diversión", "Supervivencia", "Salud"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Está el ser humano naturalmente hecho para nadar?",
+                        options: ["Sí", "No", "Parcialmente", "Algunos sí"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto de la natación es utilitario?",
+                        options: ["Competición", "Supervivencia", "Recreación", "Educación"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto se relaciona con salud física y mental?",
+                        options: ["Utilitario", "Higiénico-sanitario", "Terapéutico", "Educativo"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Es beneficiosa la natación para rehabilitación según el material?",
+                        options: ["Sí, siempre", "El medio acuático sí, los estilos no", "Solo algunos estilos", "No"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto incluye enseñanza de destrezas y técnica?",
+                        options: ["Recreativo", "Terapéutico", "Educativo", "Competitivo"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué aspecto incluye juego, diversión y placer?",
+                        options: ["Educativo", "Recreativo", "Terapéutico", "Utilitario"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué aspecto mejora el rendimiento deportivo?",
+                        options: ["Recreativo", "Educativo", "Terapéutico", "Competitivo"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿Con qué comparaban el saber nadar los griegos?",
+                        options: ["Escribir", "Leer", "Contar", "Filosofar"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Para qué más usaban la natación los griegos?",
+                        options: ["Ceremonias", "Ganar batallas", "Agricultura", "Pesca"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cómo se llamaban las primeras piscinas romanas?",
+                        options: ["Baños públicos", "Acueductos", "Termas", "Natatorios"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Nadaban los romanos en las termas?",
+                        options: ["Sí, competitivamente", "No, otras actividades acuáticas", "Solo recreativo", "Solo ejercicio"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Para qué usaban las termas principalmente?",
+                        options: ["Competición", "Rehabilitación", "Diversión", "Higiene"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Cuándo el ser humano va más rápido en el agua?",
+                        options: ["En superficie", "Haciendo crol", "Durante el buceo", "Con corriente"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Gracias a qué ha evolucionado la natación principalmente?",
+                        options: ["Tecnología", "Ciencia", "Innovaciones de nadadores", "Entrenadores"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué tipos de desplazamiento documentó Wyman en 1538?",
+                        options: ["Estilos modernos", "Perro, lateral, espalda, pecho, delfín", "Solo crol", "Braza y espalda"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué se centraba el manual de Guts Muths?",
+                        options: ["Todos los estilos", "Crol y espalda", "Braza y braza invertida", "Mariposa"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué recomendaba Guts Muths para enseñanza?",
+                        options: ["Solo agua", "Teoría", "Ejercicios en seco", "Observación"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué siglo fue la revolución industrial en Inglaterra?",
+                        options: ["XVII", "XVIII", "XIX", "XX"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Dónde se construyó la primera piscina cubierta en 1828?",
+                        options: ["París", "Nueva York", "Berlín", "Londres"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿En qué año fue la primera competición organizada?",
+                        options: ["1828", "1837", "1844", "1850"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Quiénes nadaron primero el crol según el material?",
+                        options: ["Ingleses", "Franceses", "Indios americanos", "Australianos"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿De qué era adaptación el crol en 1844?",
+                        options: ["Mariposa", "Braza en posición lateral", "Espalda", "Estilo libre"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Qué organización reglamentó la natación en 1869?",
+                        options: ["FINA", "IOC", "ASA", "BSA"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué significa ASA?",
+                        options: ["American Swimming Association", "Amateur Swimming Association", "Athletic Swimming Association", "Aquatic Swimming Association"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿En qué año se fundó la FINA?",
+                        options: ["1896", "1900", "1908", "1912"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué regula la FINA?",
+                        options: ["Piscinas", "Estilos de competición", "Entrenadores", "Instalaciones"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Quién cruzó el Canal de la Mancha en 1875?",
+                        options: ["Guts Muths", "Nicholas Wyman", "Matthew Web", "John Smith"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué impulsa la evolución de técnicas de nado?",
+                        options: ["Tecnología", "JJOO Era Moderna", "Ciencia", "Federaciones"],
+                        correct: 1
+                    },
+                    {
+                        question: "¿Dónde fue la primera prueba olímpica de natación?",
+                        options: ["Piscina", "Río", "Mar abierto", "Lago"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué ciudad fueron los primeros JJOO con natación?",
+                        options: ["París", "Londres", "Roma", "Atenas"],
+                        correct: 3
+                    },
+                    {
+                        question: "¿Qué distancia tenía la primera prueba olímpica?",
+                        options: ["800m", "1000m", "1200m", "1500m"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿Qué estilo era la primera prueba olímpica?",
+                        options: ["Braza", "Crol", "Estilo libre", "Espalda"],
+                        correct: 2
+                    },
+                    {
+                        question: "¿En qué JJOO se nadó espalda por primera vez?",
+                        options: ["Atenas 1896", "París 1900", "San Louis 1904", "Londres 1908"],
+                        correct: 1
+                    }
+                ]
+            ];
+
+            let currentQuiz = [];
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let userAnswers = [];
+            let quizStarted = false;
+
+            function startQuiz(quizIndex) {
+                currentQuiz = quizzes[quizIndex];
+                currentQuestionIndex = 0;
+                score = 0;
+                userAnswers = new Array(currentQuiz.length).fill(null);
+                quizStarted = true;
+
+                // Update UI
+                document.getElementById('quizSelector').style.display = 'none';
+                document.getElementById('progressBar').style.display = 'block';
+                document.getElementById('navButtons').style.display = 'flex';
+                document.getElementById('questionContainer').classList.add('active');
+                document.getElementById('results').classList.remove('show');
+
+                // Mark active quiz
+                const buttons = document.querySelectorAll('.quiz-btn');
+                buttons.forEach((btn, idx) => {
+                    btn.classList.toggle('active', idx === quizIndex);
+                });
+
+                displayQuestion();
+                updateProgressBar();
+            }
+
+            function displayQuestion() {
+                const question = currentQuiz[currentQuestionIndex];
+                const container = document.getElementById('questionContainer');
+
+                container.innerHTML = `
+                    <div class="question">
+                        <div class="question-number">Pregunta ${currentQuestionIndex + 1} de ${currentQuiz.length}</div>
+                        <h3>${question.question}</h3>
+                        <div class="options">
+                            ${question.options.map((option, idx) => `
+                                <div class="option ${userAnswers[currentQuestionIndex] === idx ? 'selected' : ''}"
+                                     onclick="selectOption(${idx})"
+                                     id="option-${idx}">
+                                    ${option}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="feedback" id="feedback"></div>
+                    </div>
+                `;
+
+                // Show feedback if question was already answered
+                if (userAnswers[currentQuestionIndex] !== null) {
+                    showFeedback(userAnswers[currentQuestionIndex]);
+                }
+
+                updateNavButtons();
+            }
+
+            function selectOption(selectedIndex) {
+                if (userAnswers[currentQuestionIndex] !== null) return; // Already answered
+
+                userAnswers[currentQuestionIndex] = selectedIndex;
+                const question = currentQuiz[currentQuestionIndex];
+
+                // Mark selected option
+                document.querySelectorAll('.option').forEach((opt, idx) => {
+                    opt.classList.remove('selected');
+                    if (idx === selectedIndex) {
+                        opt.classList.add('selected');
+                    }
+                });
+
+                // Check answer and update score
+                if (selectedIndex === question.correct) {
+                    score++;
+                }
+
+                showFeedback(selectedIndex);
+            }
+
+            function showFeedback(selectedIndex) {
+                const question = currentQuiz[currentQuestionIndex];
+                const isCorrect = selectedIndex === question.correct;
+
+                // Disable all options
+                document.querySelectorAll('.option').forEach((opt, idx) => {
+                    opt.classList.add('disabled');
+                    if (idx === question.correct) {
+                        opt.classList.add('correct');
+                    } else if (idx === selectedIndex && !isCorrect) {
+                        opt.classList.add('incorrect');
+                    }
+                    opt.onclick = null;
+                });
+
+                // Show feedback message
+                const feedback = document.getElementById('feedback');
+                feedback.className = `feedback show ${isCorrect ? 'correct' : 'incorrect'}`;
+                feedback.innerHTML = isCorrect
+                    ? '✓ ¡Correcto!'
+                    : `✗ Incorrecto. La respuesta correcta es: ${question.options[question.correct]}`;
+            }
+
+            function nextQuestion() {
+                if (currentQuestionIndex < currentQuiz.length - 1) {
+                    currentQuestionIndex++;
+                    displayQuestion();
+                    updateProgressBar();
+                } else if (allQuestionsAnswered()) {
+                    showResults();
+                }
+            }
+
+            function previousQuestion() {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    displayQuestion();
+                    updateProgressBar();
+                }
+            }
+
+            function updateProgressBar() {
+                const progress = ((currentQuestionIndex + 1) / currentQuiz.length) * 100;
+                document.getElementById('progress').style.width = `${progress}%`;
+            }
+
+            function updateNavButtons() {
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+
+                prevBtn.disabled = currentQuestionIndex === 0;
+
+                if (currentQuestionIndex === currentQuiz.length - 1 && allQuestionsAnswered()) {
+                    nextBtn.textContent = 'Ver Resultados';
+                    nextBtn.disabled = false;
+                } else if (currentQuestionIndex === currentQuiz.length - 1) {
+                    nextBtn.textContent = 'Ver Resultados';
+                    nextBtn.disabled = !allQuestionsAnswered();
+                } else {
+                    nextBtn.textContent = 'Siguiente';
+                    nextBtn.disabled = false;
+                }
+            }
+
+            function allQuestionsAnswered() {
+                return userAnswers.every(answer => answer !== null);
+            }
+
+            function showResults() {
+                document.getElementById('questionContainer').classList.remove('active');
+                document.getElementById('navButtons').style.display = 'none';
+                document.getElementById('progressBar').style.display = 'none';
+
+                const results = document.getElementById('results');
+                results.classList.add('show');
+
+                const percentage = Math.round((score / currentQuiz.length) * 100);
+                document.getElementById('score').textContent = `${score} / ${currentQuiz.length}`;
+
+                let message = '';
+                if (percentage >= 90) {
+                    message = '¡Excelente! Estás muy bien preparado para el examen.';
+                } else if (percentage >= 75) {
+                    message = '¡Muy bien! Tienes un buen dominio del material.';
+                } else if (percentage >= 60) {
+                    message = 'Bien, pero deberías repasar algunos conceptos.';
+                } else if (percentage >= 50) {
+                    message = 'Regular. Necesitas estudiar más el material.';
+                } else {
+                    message = 'Necesitas dedicar más tiempo al estudio del material.';
+                }
+
+                document.getElementById('scoreMessage').innerHTML = `
+                    <p>${message}</p>
+                    <p>Porcentaje: ${percentage}%</p>
+                `;
+            }
+
+            function restart() {
+                quizStarted = false;
+                currentQuiz = [];
+                currentQuestionIndex = 0;
+                score = 0;
+                userAnswers = [];
+
+                document.getElementById('quizSelector').style.display = 'grid';
+                document.getElementById('progressBar').style.display = 'none';
+                document.getElementById('navButtons').style.display = 'none';
+                document.getElementById('questionContainer').classList.remove('active');
+                document.getElementById('results').classList.remove('show');
+
+                // Remove active class from all quiz buttons
+                document.querySelectorAll('.quiz-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (!quizStarted) return;
+
+                if (e.key === 'ArrowRight' && !document.getElementById('nextBtn').disabled) {
+                    nextQuestion();
+                } else if (e.key === 'ArrowLeft' && !document.getElementById('prevBtn').disabled) {
+                    previousQuestion();
+                } else if (e.key >= '1' && e.key <= '4') {
+                    const optionIndex = parseInt(e.key) - 1;
+                    if (userAnswers[currentQuestionIndex] === null && currentQuiz[currentQuestionIndex]) {
+                        selectOption(optionIndex);
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
